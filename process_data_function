@@ -1,0 +1,48 @@
+
+#......preprocess the data 
+#......return list(dtm,dtm_new,tdm)
+
+preprocess_data <- function(file_path,fliterwords_path) {
+  library("tm")
+ # library("topicmodels")
+ # library("reader")
+ # library("SnowballC")
+  #library("NCmisc")
+
+  docs <- readLines(file_path)
+  corpus<-Corpus(VectorSource(docs))
+  corpus <- tm_map(corpus , stripWhitespace)
+  corpus <-tm_map(corpus ,removePunctuation)
+  corpus<-tm_map(corpus ,removeNumbers)
+  removeURL<-function(x) gsub("http[[:alnum:]]*","",x)
+  corpus <-tm_map(corpus ,removeURL)
+  corpus  <- tm_map(corpus , tolower)
+  corpus <-tm_map(corpus , stemDocument)
+  corpus <- tm_map(corpus , removeWords, stopwords("english"))
+  
+  fliterwords<-readLines(fliterwords_path)
+  corpus <- tm_map(corpus , removeWords, fliterwords)
+  #corpus <- tm_map(corpus, PlainTextDocument)#将reuters转化为纯文本文件，去除标签 ,会报错
+  #create doc_terms matrix
+  dtm <- DocumentTermMatrix(corpus,
+                            control = list(weighting =
+                                             function(x)
+                                               weightTf(x)))
+  tdm <-  TermDocumentMatrix(corpus)
+  rowTotals <- apply(dtm , 1, sum) #Find the sum of words in each Document
+  dtm_new   <- dtm[rowTotals> 0, ]           #remove all docs without words
+  
+  # A<-data.frame(A)
+  dtm_fra<-as.matrix(dtm)
+  dtm_new_fra<-as.matrix(dtm_new)
+  tdm_fra<-as.matrix(tdm)
+  write.table (dtm_fra, file ="/Users/wy/Desktop/实验数据/dtm.txt", sep ="", row.names =F, col.names =F)
+  write.table (dtm_new_fra, file ="/Users/wy/Desktop/实验数据/dtm_new.txt", sep ="", row.names =F, col.names =F)
+  write.table (tdm_fra, file ="/Users/wy/Desktop/实验数据/tdm.txt", sep ="", row.names =F, col.names =F)
+  #result_list<-list[dtm_new_fra,dtm_fra,tdm_fra]
+  a<-dtm_new_fra
+  b<-dtm_fra
+  c<-tdm_fra
+  d<-list(a,b,c)
+  return(d)
+}
