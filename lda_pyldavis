@@ -1,0 +1,38 @@
+pyldavis<-function(corpus,tompics_numbers){
+  library(lda)
+  library(servr)
+  library(LDAvis)
+  comments <- as.list(corpus) 
+  doc.list <- strsplit(as.character(comments),split=" ") 
+  term.num<-unlist(doc.list)
+  term.table <- table(unlist(doc.list))
+  term.table <- sort(term.table, decreasing = TRUE)
+  del <- term.table < 1| nchar(names(term.table))<1   
+  term.table <- term.table[!del]
+  vocab <- names(term.table)
+  get.terms <- function(x) {
+    index <- match(x, vocab)  
+    index <- index[!is.na(index)]  
+    rbind(as.integer(index - 1), as.integer(rep(1, length(index))))   
+  }
+  documents <- lapply(doc.list, get.terms)
+  G <- 5000    
+  alpha <- 0.10   
+  eta <- 0.02
+ 
+  set.seed(357)
+  
+  fit <- lda.collapsed.gibbs.sampler(documents = documents, K = tompics_numbers, vocab = vocab, 
+                                     num.iterations = G, alpha = alpha, eta = eta, 
+                                     initial = NULL, burnin = 0, 
+                                     compute.log.likelihood = TRUE)
+  theta <- t(apply(fit$document_sums + alpha, 2, function(x) x/sum(x)))  
+  phi <- t(apply(t(fit$topics) + eta, 2, function(x) x/sum(x))) 
+  term.frequency <- as.integer(term.table)   
+  doc.length <- sapply(documents, function(x) sum(x[2, ])) 
+  
+  json <- createJSON(phi = phi, theta = theta,
+                     doc.length = doc.length, vocab = vocab,
+                     term.frequency = term.frequency)
+  serVis(json, out.dir = '/Users/wy/Desktop/实验代码/R代码/json_05', open.browser = FALSE)
+}
