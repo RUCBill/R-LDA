@@ -1,0 +1,19 @@
+#....merge the data into one merge_data.txt
+#....return the merge_data_prah
+
+import_data <- function(file_path) {
+  
+  file_list<-list.files(file_path)
+  dir = paste(file_path,file_list,sep = "/")
+  n = length(dir)
+  for (i in 1:n){
+    new.values = readLines(dir[i])
+    merge.values = c(merge.values , new.values)
+    merge_data_path = paste(file_path , "merge.txt",sep = "/")
+    write.csv(merge.values,file = merge_data_path,row.names=F)
+    
+    print(paste("一共有文件:",n))
+    print(paste("融合的TXT文本存储在:" ,merge_data_path))
+    return(merge_data_path)
+  }
+}
