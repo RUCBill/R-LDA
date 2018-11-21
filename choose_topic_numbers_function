@@ -1,0 +1,15 @@
+#.........choose topic numbers
+#...........input:dtm
+#...........output a figure about the topic numbers
+choose_topic_numbers_function<-function(dtm){
+  library("ldatuning")
+  library("topicmodels")
+  result<-FindTopicsNumber(dtm,topics = seq(2, 10, by = 1),
+                           metrics = c("Griffiths2004","CaoJuan2009", "Arun2010", "Deveaud2014"), 
+                           method = "Gibbs", 
+                           control = list(seed = 77),
+                           mc.cores = 1L,
+                           verbose = TRUE)
+  return(FindTopicsNumber_plot(result))  
+  
+}
